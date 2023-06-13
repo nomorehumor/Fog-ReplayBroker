@@ -17,8 +17,8 @@ class Sensor:
 
     def __init__(self, socket_address) -> None:
         self.context = zmq.Context()
-        self.publisher = self.context.socket(zmq.REQ) 
-        self.publisher.connect(socket_address)  # Connect socket to backend of the broker
+        self.publisher = self.context.socket(zmq.PUB) 
+        self.publisher.bind(socket_address)  # Connect socket to backend of the broker
 
     def start(self):
         data_generator = generate_electricity_rows()

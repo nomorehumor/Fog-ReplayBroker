@@ -19,14 +19,16 @@ class ReplayBroker(Broker):
         self.local_replay_socket = self.context.socket(zmq.REP)
         self.local_replay_socket.bind(local_replay_address)
 
-    def connectToRemoteReplayServer(self, remote_replay_address):
+        self.last_event_id = None
+
+    def connect_to_remote_replay_server(self, remote_replay_address):
         """
         Connects to the remote replay server.
         """
         self.remote_replay_socket = self.context.socket(zmq.REQ)
         self.remote_replay_socket.connect(remote_replay_address)
 
-    def startReplayServer(self):
+    def start_replay_server(self):
         """
         Receives replay requests from the client and sends the requested events.
         """
@@ -47,20 +49,16 @@ class ReplayBroker(Broker):
             # Wait for a short period before checking for new messages
             time.sleep(1)
 
-    def send_replay_by_id_request(self):
-        """
-        Sends a replay by ID request to the remote replay socket.
-        """
-        last_event_id = "1234"
-        self.remote_replay_socket.send_json({"type": "replay_by_id", "last_event_id": last_event_id})
-        response = self.remote_replay_socket.recv_json()
-        self.publish_events(response.get("events"))
+    def send_replay_request(self):
+        if self.remote_replay_socket is None:
+            raise Exception("Not connected to remote replay server")
 
-    def send_replay_all_request(self):
-        """
-        Sends a replay all request to the remote replay socket.
-        """
-        self.remote_replay_socket.send_json({"type": "replay_all"})
+        if self.last_event_id is None:
+            request = {"type": "replay_all"}
+        else:
+            request = {"type": "replay_by_id", "last_event_id": self.last_event_id}
+
+        self.remote_replay_socket.send_json(request)
         response = self.remote_replay_socket.recv_json()
         self.publish_events(response.get("events"))
 
@@ -71,6 +69,8 @@ class ReplayBroker(Broker):
         Args:
             events (list): List of events to publish.
         """
+        # TODO: Add logic to publish events to the edge subscribe socket.
+        # TODO: set last_event_id
         for event in events:
             print(event)
             # self.edge_sub_socket.send_json(event)
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         edge_sub_address="tcp://127.0.0.1:2222",
     )
 
-    fogBroker.connectToRemoteReplayServer("tcp://127.0.0.1:1234")
+    fogBroker.connect_to_remote_replay_server("tcp://127.0.0.1:1234")
 
-    threading.Thread(target=cloudBroker.startReplayServer).start()
-    threading.Thread(target=fogBroker.send_replay_all_request).start()
+    threading.Thread(target=cloudBroker.start_replay_server).start()
+    threading.Thread(target=fogBroker.send_replay_request).start()

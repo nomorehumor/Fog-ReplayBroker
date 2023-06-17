@@ -1,11 +1,11 @@
-from src.broker import Broker
+from broker import Broker
 import time
 import threading
 import zmq
 
 
 class ReplayBroker(Broker):
-    def __init__(self, local_replay_address, remote_replay_address, server_pub_address, edge_sub_address) -> None:
+    def __init__(self, local_replay_address, server_pub_address, edge_sub_address) -> None:
         """
         Initializes a ReplayBroker object.
 
@@ -19,10 +19,14 @@ class ReplayBroker(Broker):
         self.local_replay_socket = self.context.socket(zmq.REP)
         self.local_replay_socket.bind(local_replay_address)
 
+    def connectToRemoteReplayServer(self, remote_replay_address):
+        """
+        Connects to the remote replay server.
+        """
         self.remote_replay_socket = self.context.socket(zmq.REQ)
         self.remote_replay_socket.connect(remote_replay_address)
 
-    def recv_replay_requests(self):
+    def startReplayServer(self):
         """
         Receives replay requests from the client and sends the requested events.
         """
@@ -73,17 +77,18 @@ class ReplayBroker(Broker):
 
 
 if __name__ == "__main__":
-    broker1 = ReplayBroker(
+    fogBroker = ReplayBroker(
         local_replay_address="tcp://127.0.0.1:4114",
-        remote_replay_address="tcp://127.0.0.1:1234",
         server_pub_address="tcp://127.0.0.1:5559",
         edge_sub_address="tcp://127.0.0.1:5560",
     )
-    broker2 = ReplayBroker(
+    cloudBroker = ReplayBroker(
         local_replay_address="tcp://127.0.0.1:1234",
-        remote_replay_address="tcp://127.0.0.1:4114",
         server_pub_address="tcp://127.0.0.1:1111",
         edge_sub_address="tcp://127.0.0.1:2222",
     )
-    threading.Thread(target=broker2.recv_replay_requests).start()
-    threading.Thread(target=broker1.send_replay_all_request).start()
+
+    fogBroker.connectToRemoteReplayServer("tcp://127.0.0.1:1234")
+
+    threading.Thread(target=cloudBroker.startReplayServer).start()
+    threading.Thread(target=fogBroker.send_replay_all_request).start()

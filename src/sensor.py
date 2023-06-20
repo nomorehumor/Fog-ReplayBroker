@@ -12,7 +12,7 @@ def generate_electricity_rows() -> dict:
         date = datetime.now()
         ev_usage = round(random.uniform(0, random.uniform(100, 1000)), 2)
         uuid_value = uuid.uuid1()
-        yield {"date": date, "uuid":uuid_value, "ev_usage": ev_usage}
+        yield {"timestamp": str(date), "uuid": str(uuid_value), "name": "energy_usage", "value": ev_usage}
 
 class Sensor:
 
@@ -30,8 +30,8 @@ class Sensor:
     
     def publish_data(self, json_data: dict):
         data = json.dumps(json_data, indent=4, sort_keys=True, default=str)
-        # print(data)
-        self.publisher.send_json(data) # Send message to subscribers
+        print(data)
+        self.publisher.send_json(json_data) # Send message to subscribers
 
     
 if __name__ == "__main__":

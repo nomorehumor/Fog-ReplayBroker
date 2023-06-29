@@ -2,10 +2,12 @@ from broker import Broker
 import time
 import threading
 import zmq
+import os
+import yaml
 
 
 class ReplayBroker(Broker):
-    def __init__(self, local_replay_address, server_pub_address, edge_sub_address) -> None:
+    def __init__(self, sub_socket: str, pub_socket: str, db_url: str, queue_size: int, local_replay_address) -> None:
         """
         Initializes a ReplayBroker object.
 
@@ -15,7 +17,7 @@ class ReplayBroker(Broker):
             server_pub_address (str): The address for the server publish socket.
             edge_sub_address (str): The address for the edge subscribe socket.
         """
-        super().__init__(server_pub_address, edge_sub_address)
+        super().__init__(sub_socket, pub_socket, db_url)
         self.local_replay_socket = self.context.socket(zmq.REP)
         self.local_replay_socket.bind(local_replay_address)
 
@@ -77,15 +79,22 @@ class ReplayBroker(Broker):
 
 
 if __name__ == "__main__":
+    with open(os.path.dirname(os.path.realpath(__file__)) + "/../configs/broker.yaml", "r") as f:
+        config = yaml.safe_load(f)
+        
     fogBroker = ReplayBroker(
-        local_replay_address="tcp://127.0.0.1:4114",
-        server_pub_address="tcp://127.0.0.1:5559",
-        edge_sub_address="tcp://127.0.0.1:5560",
+        sub_socket=config["sub_socket"], 
+        pub_socket=config["pub_socket"], 
+        db_url=config["db_url"], 
+        queue_size=config["queue_size"],
+        local_replay_address="tcp://127.0.0.1:4114"
     )
     cloudBroker = ReplayBroker(
-        local_replay_address="tcp://127.0.0.1:1234",
-        server_pub_address="tcp://127.0.0.1:1111",
-        edge_sub_address="tcp://127.0.0.1:2222",
+        sub_socket=config["sub_socket"], 
+        pub_socket=config["pub_socket"], 
+        db_url=config["db_url"], 
+        queue_size=config["queue_size"],
+        local_replay_address="tcp://127.0.0.1:4114"
     )
 
     fogBroker.connect_to_remote_replay_server("tcp://127.0.0.1:1234")

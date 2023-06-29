@@ -22,22 +22,17 @@ class Broker:
         self.repository = Repository(db_url, queue_size)
     
     def process_msg(self, msg: dict):
-        persist_object = {
-            "arrival_time": datetime.datetime.now(),
-            "timestamp": msg["timestamp"],
-            "_id": msg["uuid"],
-        }
         
+        msg["arrival_time"] = datetime.datetime.now()
+
         if msg["name"] == "energy_usage":
-            persist_object["value"] = msg["value"]
-            self.energy_data_cache.put(persist_object)
-            self.repository.insert_energy_value(persist_object)
-    
+            self.repository.insert_energy_value(msg)
+
     def get_event_by_id(self, last_event_id):
-        return {"events": [{"id": 1, "date": "2021-10-10", "uuid": "1234", "ev_usage": 1234}] }
+        return self.repository.find_energy_by_id(last_event_id)
 
     def get_all_events(self):
-        return {"events": [{"id": 1, "date": "2021-10-10", "uuid": "1234", "ev_usage": 1234}] }
+        return self.repository.get_energy_all()
     
     def poll(self):
         while True:

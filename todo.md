@@ -1,0 +1,6 @@
+- [ ] Containerize with Docker (each one and all in compose)
+    - Sensor (simulation publisher)
+    - Broker
+    - Subscriber
+- [ ] Add subscribers
+- [ ] Add functions to repository

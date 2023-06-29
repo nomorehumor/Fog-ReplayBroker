@@ -1,0 +1,4 @@
+pub_socket: "tcp://127.0.0.1:5559"
+sub_socket: "tcp://127.0.0.1:5560"
+db_url: "mongodb://localhost:27017/"
+queue_size: 500

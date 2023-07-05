@@ -7,7 +7,7 @@ import yaml
 
 
 class ReplayBroker(Broker):
-    def __init__(self, sub_socket: str, pub_socket: str, db_url: str, queue_size: int, local_replay_address) -> None:
+    def __init__(self, sub_socket: str, pub_socket: str, db_url: str, queue_size: int, replay_socket) -> None:
         """
         Initializes a ReplayBroker object.
 
@@ -18,10 +18,13 @@ class ReplayBroker(Broker):
             edge_sub_address (str): The address for the edge subscribe socket.
         """
         super().__init__(sub_socket, pub_socket, db_url)
+        # create local replay server
         self.local_replay_socket = self.context.socket(zmq.REP)
-        self.local_replay_socket.bind(local_replay_address)
-
+        self.local_replay_socket.bind(replay_socket)
         self.last_event_id = None
+        # The address for the remote replay socket.
+        self.remote_replay_socket = None
+        self.send_replay_lock = threading.Lock()
 
     def connect_to_remote_replay_server(self, remote_replay_address):
         """
@@ -51,7 +54,7 @@ class ReplayBroker(Broker):
             # Wait for a short period before checking for new messages
             time.sleep(1)
 
-    def send_replay_request(self):
+    def send_replay_request(self, timeout=None):
         if self.remote_replay_socket is None:
             raise Exception("Not connected to remote replay server")
 
@@ -60,9 +63,24 @@ class ReplayBroker(Broker):
         else:
             request = {"type": "replay_by_id", "last_event_id": self.last_event_id}
 
+        with self.send_replay_lock:
+            threading.Thread(target=self._send_replay_request, args=(request, timeout)).start()
+
+    def _send_replay_request(self, request, timeout):
+        poller = zmq.Poller()
+        poller.register(self.remote_replay_socket, zmq.POLLIN)
+
         self.remote_replay_socket.send_json(request)
-        response = self.remote_replay_socket.recv_json()
-        self.publish_events(response.get("events"))
+
+        if poller.poll(timeout=timeout * 1000):
+            response = self.remote_replay_socket.recv_json()
+            print(response)
+            # self.publish_events(response.get("events"))
+        else:
+            print("Timeout occurred, retrying in 5 seconds")
+            # Timeout occurred
+            # Handle the timeout event here
+            pass
 
     def publish_events(self, events):
         """
@@ -79,25 +97,28 @@ class ReplayBroker(Broker):
 
 
 if __name__ == "__main__":
-    with open(os.path.dirname(os.path.realpath(__file__)) + "/../configs/broker.yaml", "r") as f:
-        config = yaml.safe_load(f)
-        
+    with open(os.path.dirname(os.path.realpath(__file__)) + "/../configs/fog_broker.yaml", "r") as f:
+        fog_config = yaml.safe_load(f)
+
+    with open(os.path.dirname(os.path.realpath(__file__)) + "/../configs/cloud_broker.yaml", "r") as f:
+        cloud_config = yaml.safe_load(f)
+
     fogBroker = ReplayBroker(
-        sub_socket=config["sub_socket"], 
-        pub_socket=config["pub_socket"], 
-        db_url=config["db_url"], 
-        queue_size=config["queue_size"],
-        local_replay_address="tcp://127.0.0.1:4114"
+        sub_socket=fog_config["sub_socket"],
+        pub_socket=fog_config["pub_socket"],
+        db_url=fog_config["db_url"],
+        queue_size=fog_config["queue_size"],
+        replay_socket=fog_config["replay_socket"]
     )
     cloudBroker = ReplayBroker(
-        sub_socket=config["sub_socket"], 
-        pub_socket=config["pub_socket"], 
-        db_url=config["db_url"], 
-        queue_size=config["queue_size"],
-        local_replay_address="tcp://127.0.0.1:4114"
+        sub_socket=cloud_config["sub_socket"],
+        pub_socket=cloud_config["pub_socket"],
+        db_url=fog_config["db_url"],
+        queue_size=cloud_config["queue_size"],
+        replay_socket=cloud_config["replay_socket"]
     )
 
-    fogBroker.connect_to_remote_replay_server("tcp://127.0.0.1:1234")
+    fogBroker.connect_to_remote_replay_server(cloud_config["replay_socket"])
 
     threading.Thread(target=cloudBroker.start_replay_server).start()
-    threading.Thread(target=fogBroker.send_replay_request).start()
+    threading.Thread(target=fogBroker.send_replay_request, args=(2,)).start()

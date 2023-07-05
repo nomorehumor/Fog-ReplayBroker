@@ -21,66 +21,84 @@ class ReplayBroker(Broker):
         # create local replay server
         self.local_replay_socket = self.context.socket(zmq.REP)
         self.local_replay_socket.bind(replay_socket)
-        self.last_event_id = None
+        self.last_event_date = None
         # The address for the remote replay socket.
         self.remote_replay_socket = None
+        self.request_in_progress = False
         self.send_replay_lock = threading.Lock()
+        self.first_event_date = None
 
     def connect_to_remote_replay_server(self, remote_replay_address):
         """
         Connects to the remote replay server.
         """
-        self.remote_replay_socket = self.context.socket(zmq.REQ)
-        self.remote_replay_socket.connect(remote_replay_address)
+        self.remote_replay_address = remote_replay_address
 
-    def start_replay_server(self):
+    def start_local_replay_server(self):
         """
         Receives replay requests from the client and sends the requested events.
         """
         while True:
+
             # Receive a message from the client
             request = self.local_replay_socket.recv_json()
 
             if request:
                 request_type = request.get("type")
 
-                if request_type == "replay_by_id":
-                    events = self.get_event_by_id(request.get("last_event_id"))
+                if request_type == "replay_by_timestamp":
+                    events = self.get_event_by_id(request.get("last_event_date"))
                 elif request_type == "replay_all":
                     events = self.get_all_events()
 
+                print("send response", events)
                 self.local_replay_socket.send_json(events)
+                self.first_run = False
 
             # Wait for a short period before checking for new messages
             time.sleep(1)
 
-    def send_replay_request(self, timeout=None):
-        if self.remote_replay_socket is None:
-            raise Exception("Not connected to remote replay server")
+    def start_replay_request_loop(self, interval=2, timeout=5):
+        while True:
+            if not self.request_in_progress:  # Only send a new request if one is not already in progress
+                self.send_replay_request(timeout)
+            time.sleep(interval)
 
-        if self.last_event_id is None:
+    def send_replay_request(self, timeout):
+        if self.last_event_date is None:
             request = {"type": "replay_all"}
         else:
-            request = {"type": "replay_by_id", "last_event_id": self.last_event_id}
+            request = {"type": "replay_by_timestamp", "last_event_date": self.last_event_date}
 
         with self.send_replay_lock:
+            self.request_in_progress = True  # Set the flag to indicate that a request is in progress
             threading.Thread(target=self._send_replay_request, args=(request, timeout)).start()
 
     def _send_replay_request(self, request, timeout):
+
+        # Create connection to remote replay server
+        self.remote_replay_socket = self.context.socket(zmq.REQ)
+        self.remote_replay_socket.connect(self.remote_replay_address)
+
+        # Send the replay request to the remote replay server
+        print("Sending replay request")
+        self.remote_replay_socket.send_json(request)
+
+        # Create poller to check for timeout
         poller = zmq.Poller()
         poller.register(self.remote_replay_socket, zmq.POLLIN)
 
-        self.remote_replay_socket.send_json(request)
-
+        # Wait for a response from the remote replay server
         if poller.poll(timeout=timeout * 1000):
+            print("Trying to receive response")
             response = self.remote_replay_socket.recv_json()
             print(response)
             # self.publish_events(response.get("events"))
         else:
-            print("Timeout occurred, retrying in 5 seconds")
-            # Timeout occurred
-            # Handle the timeout event here
-            pass
+            print("Timeout occurred, handling the timeout event")
+            self.remote_replay_socket.close()
+
+        self.request_in_progress = False
 
     def publish_events(self, events):
         """
@@ -120,5 +138,5 @@ if __name__ == "__main__":
 
     fogBroker.connect_to_remote_replay_server(cloud_config["replay_socket"])
 
-    threading.Thread(target=cloudBroker.start_replay_server).start()
-    threading.Thread(target=fogBroker.send_replay_request, args=(2,)).start()
+    threading.Thread(target=cloudBroker.start_local_replay_server).start()
+    threading.Thread(target=fogBroker.start_replay_request_loop).start()

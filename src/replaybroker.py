@@ -84,7 +84,7 @@ class ReplayBroker(Broker):
             print("Sending replay request", request.get("type"))
             self.remote_replay_socket.send_json(request)
             response = self.remote_replay_socket.recv_json()
-            print("Response", response)
+            self.handle_events(response)
         except zmq.error.Again:
             print("Resource temporarily unavailable. Retrying in 5 sec later...")
             time.sleep(5)
@@ -93,18 +93,10 @@ class ReplayBroker(Broker):
             self.remote_replay_socket.close()
             self.request_in_progress = False
 
-    def publish_events(self, events):
-        """
-        Publishes events to the edge subscribe socket.
-
-        Args:
-            events (list): List of events to publish.
-        """
-        # TODO: Add logic to publish events to the edge subscribe socket.
-        # TODO: set last_event_id
+    def handle_events(self, events):
         for event in events:
             print(event)
-            # self.edge_sub_socket.send_json(event)
+            # TODO: handle event e.g. save into database
 
 
 if __name__ == "__main__":

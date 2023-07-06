@@ -1,6 +1,6 @@
 import os
-from sensor import Sensor
-from broker import Broker
+from sensor.sensor import Sensor
+from replay_broker.broker import Broker
 import yaml
 from multiprocessing import Process
 

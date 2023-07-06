@@ -102,35 +102,23 @@ class ReplayBroker(Broker):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config", default=os.path.dirname(os.path.realpath(__file__)) + "/configs/sensor.yaml")
+    parser.add_argument("-c", "--config", default=os.path.dirname(os.path.realpath(__file__)) + "/configs/cloud_broker.yaml")
     parser.add_argument("-r", "--replay", default=False, action="store_true")
     args = parser.parse_args()
     
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
     
-    with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/fog_broker.yaml", "r") as f:
-        fog_config = yaml.safe_load(f)
-
-    with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/cloud_broker.yaml", "r") as f:
-        cloud_config = yaml.safe_load(f)
-
-    fogBroker = ReplayBroker(
-        sub_socket=fog_config["sub_socket"],
-        pub_socket=fog_config["pub_socket"],
-        db_url=fog_config["db_url"],
-        queue_size=fog_config["queue_size"],
-        replay_socket=fog_config["replay_socket"]
+    broker = ReplayBroker(
+        sub_socket=config["sub_socket"],
+        pub_socket=config["pub_socket"],
+        db_url=config["db_url"],
+        queue_size=config["queue_size"],
+        replay_socket=config["replay_socket"]
     )
-    cloudBroker = ReplayBroker(
-        sub_socket=cloud_config["sub_socket"],
-        pub_socket=cloud_config["pub_socket"],
-        db_url=fog_config["db_url"],
-        queue_size=cloud_config["queue_size"],
-        replay_socket=cloud_config["replay_socket"]
-    )
-
-    fogBroker.connect_to_remote_replay_server(cloud_config["replay_socket"])
-
-    threading.Thread(target=cloudBroker.start_local_replay_server).start()
-    threading.Thread(target=fogBroker.start_replay_request_loop).start()
+    
+    if args.replay:
+        threading.Thread(target=broker.start_replay_request_loop).start()
+        broker.connect_to_remote_replay_server(config["remote_replay_socket"])
+    else:
+        threading.Thread(target=broker.start_local_replay_server).start()

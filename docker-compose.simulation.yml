@@ -12,4 +12,20 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
 
-    
+  fog-node:
+    image: replay_broker
+    build: src/replay_broker
+    ports:
+      - 1234
+      - 4341
+      - 1441
+    command: --replay --config configs/fog_broker.yaml
+
+  cloud-node:
+    image: replay_broker
+    build: src/replay_broker
+    ports:
+      - 1234
+      - 4341
+      - 1441
+    command: --replay --config configs/cloud_broker.yaml

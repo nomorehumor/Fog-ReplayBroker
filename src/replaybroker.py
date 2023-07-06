@@ -51,9 +51,7 @@ class ReplayBroker(Broker):
                 elif request_type == "replay_all":
                     events = self.get_all_events()
 
-                print("send response", events)
                 self.local_replay_socket.send_json(events)
-                self.first_run = False
 
             # Wait for a short period before checking for new messages
             time.sleep(1)
@@ -75,30 +73,25 @@ class ReplayBroker(Broker):
             threading.Thread(target=self._send_replay_request, args=(request, timeout)).start()
 
     def _send_replay_request(self, request, timeout):
+        try:
+            # Create connection to remote replay server
+            self.remote_replay_socket = self.context.socket(zmq.REQ)
+            self.remote_replay_socket.setsockopt(zmq.CONNECT_TIMEOUT, timeout * 1000)
+            self.remote_replay_socket.setsockopt(zmq.RCVTIMEO, timeout * 1000)
+            self.remote_replay_socket.connect(self.remote_replay_address)
 
-        # Create connection to remote replay server
-        self.remote_replay_socket = self.context.socket(zmq.REQ)
-        self.remote_replay_socket.connect(self.remote_replay_address)
-
-        # Send the replay request to the remote replay server
-        print("Sending replay request")
-        self.remote_replay_socket.send_json(request)
-
-        # Create poller to check for timeout
-        poller = zmq.Poller()
-        poller.register(self.remote_replay_socket, zmq.POLLIN)
-
-        # Wait for a response from the remote replay server
-        if poller.poll(timeout=timeout * 1000):
-            print("Trying to receive response")
+            # Send the replay request to the remote replay server
+            print("Sending replay request", request.get("type"))
+            self.remote_replay_socket.send_json(request)
             response = self.remote_replay_socket.recv_json()
-            print(response)
-            # self.publish_events(response.get("events"))
-        else:
-            print("Timeout occurred, handling the timeout event")
+            print("Response", response)
+        except zmq.error.Again:
+            print("Resource temporarily unavailable. Retrying in 5 sec later...")
+            time.sleep(5)
+            # Handle the temporary unavailability, such as adding a delay and retrying later
+        finally:
             self.remote_replay_socket.close()
-
-        self.request_in_progress = False
+            self.request_in_progress = False
 
     def publish_events(self, events):
         """

@@ -1,6 +1,5 @@
 import zmq
 
-
 class Subscriber:
     def __init__(self, pub_ip, sub_socket) -> None:
         self.pub_ip = pub_ip

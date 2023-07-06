@@ -2,5 +2,8 @@
     - Sensor (simulation publisher)
     - Broker
     - Subscriber
+    - MongoDB
 - [ ] Add subscribers
 - [ ] Add functions to repository
+- [ ] get after id (repository)
+- [ ] Terraform

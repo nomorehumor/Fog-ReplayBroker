@@ -118,7 +118,7 @@ if __name__ == "__main__":
     )
     
     if args.replay:
-        threading.Thread(target=broker.start_replay_request_loop).start()
         broker.connect_to_remote_replay_server(config["remote_replay_socket"])
+        threading.Thread(target=broker.start_replay_request_loop).start()
     else:
         threading.Thread(target=broker.start_local_replay_server).start()

@@ -28,4 +28,4 @@ services:
       - 1234
       - 4341
       - 1441
-    command: --replay --config configs/cloud_broker.yaml
+    command: --config configs/cloud_broker.yaml

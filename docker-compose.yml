@@ -1,0 +1,21 @@
+services:
+  sensor:
+    image: sensor
+    build: src/sensor
+    ports:
+      - 5560
+
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  fog-node:
+    image: replay_broker
+    build: src/replay_broker
+    ports:
+      - 1234
+      - 4341
+      - 1441

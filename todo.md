@@ -1,9 +1,9 @@
 - [ ] Containerize with Docker (each one and all in compose)
-    - Sensor (simulation publisher)
-    - Broker
+    - [x] Sensor (simulation publisher)
+    - [x] Broker
     - Subscriber
-    - MongoDB
+    - [x] MongoDB
 - [ ] Add subscribers
 - [ ] Add functions to repository
-- [ ] get after id (repository)
+    - [ ] get after id (repository)
 - [ ] Terraform

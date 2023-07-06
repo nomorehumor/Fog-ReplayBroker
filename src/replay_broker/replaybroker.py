@@ -1,3 +1,4 @@
+import argparse
 from broker import Broker
 import time
 import threading
@@ -100,10 +101,18 @@ class ReplayBroker(Broker):
 
 
 if __name__ == "__main__":
-    with open(os.path.dirname(os.path.realpath(__file__)) + "/../configs/fog_broker.yaml", "r") as f:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--config", default=os.path.dirname(os.path.realpath(__file__)) + "/configs/sensor.yaml")
+    parser.add_argument("-r", "--replay", default=False, action="store_true")
+    args = parser.parse_args()
+    
+    with open(args.config, "r") as f:
+        config = yaml.safe_load(f)
+    
+    with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/fog_broker.yaml", "r") as f:
         fog_config = yaml.safe_load(f)
 
-    with open(os.path.dirname(os.path.realpath(__file__)) + "/../configs/cloud_broker.yaml", "r") as f:
+    with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/cloud_broker.yaml", "r") as f:
         cloud_config = yaml.safe_load(f)
 
     fogBroker = ReplayBroker(

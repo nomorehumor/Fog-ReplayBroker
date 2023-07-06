@@ -6,6 +6,7 @@ import uuid
 import json
 import yaml
 import os
+import argparse
 
 def generate_electricity_rows() -> dict:
     while True:
@@ -35,7 +36,11 @@ class Sensor:
 
     
 if __name__ == "__main__":
-    with open(os.path.dirname(os.path.realpath(__file__)) + "/../configs/sensor.yaml", "r") as f:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--config", default=os.path.dirname(os.path.realpath(__file__)) + "/configs/sensor.yaml")
+    args = parser.parse_args()
+    
+    with open(args.config, "r") as f:
         config = yaml.safe_load(f)
         
     sensor = Sensor(socket_address=config["socket"], delay=config["delay"])

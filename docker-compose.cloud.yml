@@ -1,0 +1,34 @@
+services:
+  sensor:
+    image: sensor
+    container_name: pub
+    build: src/sensor
+    depends_on:
+      - cloud-node
+
+  cloud-node:
+    container_name: broker
+    depends_on:
+      - mongodb
+    image: replay_broker
+    build: src/replay_broker
+    ports:
+      - 55600:55600
+      - 55590:55590
+      - 4411:4411
+    command: --config configs/cloud_broker.yaml
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: always
+    expose:
+      - 27017
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+
+# Keeps the MongoDB data consistent between shutdowns
+volumes:
+  mongodb_data_container:

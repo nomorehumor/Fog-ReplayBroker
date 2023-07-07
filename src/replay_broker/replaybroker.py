@@ -46,12 +46,14 @@ class ReplayBroker(Broker):
         """
         Receives replay requests from the client and sends the requested events.
         """
+        print("Starting local replay server...")
         while True:
 
             # Receive a message from the client
             request = self.local_replay_socket.recv_json()
 
             if request:
+                print("Received replay request", request.get("type"))
                 request_type = request.get("type")
 
                 if request_type == "replay_by_timestamp":
@@ -64,7 +66,7 @@ class ReplayBroker(Broker):
             # Wait for a short period before checking for new messages
             time.sleep(1)
 
-    def start_replay_request_loop(self, interval=2, timeout=5):
+    def start_replay_request_loop(self, interval=2, timeout=60):
         while True:
             if not self.request_in_progress:  # Only send a new request if one is not already in progress
                 self.send_replay_request(timeout)
@@ -90,6 +92,8 @@ class ReplayBroker(Broker):
 
             # Send the replay request to the remote replay server
             logging.info(f"Sending replay request {request.get('type')}")
+            logger.info("Sending replay request", request.get("type"))
+            logger.info("to", self.remote_replay_address)
             self.remote_replay_socket.send_json(request)
             response = self.remote_replay_socket.recv_json()
             self.handle_events(response)

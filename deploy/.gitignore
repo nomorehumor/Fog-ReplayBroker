@@ -36,3 +36,5 @@ crash.log
 *.tfplan
 *.tfout
 *.tfstate.backup
+
+scripts/ip.txt

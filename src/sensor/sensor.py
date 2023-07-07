@@ -27,7 +27,7 @@ def generate_weather_rows() -> dict:
         uuid_value = uuid.uuid1()
         yield {"timestamp": str(date), "uuid": str(uuid_value), "name": DATA_WEATHER, "temperature": temperature, "humidity": humidity, "wind_speed": wind_speed}
 
-class Sensor:
+class DataProvider:
 
     def __init__(self, socket_address, delay=0.3) -> None:
         self.context = zmq.Context()
@@ -60,5 +60,5 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
         
-    sensor = Sensor(socket_address=config["socket"], delay=config["delay"])
+    sensor = DataProvider(socket_address=config["socket"], delay=config["delay"])
     sensor.start()

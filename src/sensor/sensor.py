@@ -54,11 +54,11 @@ class DataProvider:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", default=os.path.dirname(os.path.realpath(__file__)) + "/configs/sensor.yaml")
-    parser.add_argument("-t", type=str, required=True, help=f"Options: {DATA_ENERGY_USAGE}, {DATA_WEATHER}")
+    parser.add_argument("-t", "--type", type=str, required=True, help=f"Options: {DATA_ENERGY_USAGE}, {DATA_WEATHER}")
     args = parser.parse_args()
     
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
         
     sensor = DataProvider(socket_address=config["socket"], delay=config["delay"])
-    sensor.start()
+    sensor.start(args.type)

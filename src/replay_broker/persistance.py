@@ -29,8 +29,6 @@ class Repository:
     
     def get_energy_all(self):
         return list(self.energy_collection.find())
-    
-    # def find_after_timestamp
             
 if __name__ == "__main__":
     repo = Repository("mongodb://localhost:27017/", 10)

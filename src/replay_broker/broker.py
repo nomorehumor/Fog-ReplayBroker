@@ -2,8 +2,12 @@ import zmq
 import os
 import yaml
 import datetime
+import logging
 
 from persistance import Repository
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 class Broker:
     def __init__(self, sub_socket: str, pub_socket: str, db_url: str, queue_size: int = 500) -> None:
@@ -36,13 +40,13 @@ class Broker:
     
     def poll(self):
         while True:
-            print("Waiting for msg")
+            logger.info("Broker: Waiting for msg")
             message = self.edge_sub_socket.recv_json()
             self.process_msg(message)
-            print("Received:", message)
+            logger.info("Received:", message)
     
 if __name__ == "__main__":
-    with open(os.path.dirname(os.path.realpath(__file__)) + "/../configs/broker.yaml", "r") as f:
+    with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/broker.yaml", "r") as f:
         config = yaml.safe_load(f)
         
     broker = Broker(

@@ -5,7 +5,11 @@ import threading
 import zmq
 import os
 import yaml
+import logging
 
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 class ReplayBroker(Broker):
     def __init__(self, sub_socket: str, pub_socket: str, db_url: str, queue_size: int, replay_socket) -> None:
@@ -28,6 +32,9 @@ class ReplayBroker(Broker):
         self.request_in_progress = False
         self.send_replay_lock = threading.Lock()
         self.first_event_date = None
+        
+        self.data_poll_thread = threading.Thread(target=self.poll)
+        self.data_poll_thread.start()
 
     def connect_to_remote_replay_server(self, remote_replay_address):
         """
@@ -82,12 +89,12 @@ class ReplayBroker(Broker):
             self.remote_replay_socket.connect(self.remote_replay_address)
 
             # Send the replay request to the remote replay server
-            print("Sending replay request", request.get("type"))
+            logger.info("Sending replay request", request.get("type"))
             self.remote_replay_socket.send_json(request)
             response = self.remote_replay_socket.recv_json()
             self.handle_events(response)
         except zmq.error.Again:
-            print("Resource temporarily unavailable. Retrying in 5 sec later...")
+            logger.warning("Resource temporarily unavailable. Retrying in 5 sec later...")
             time.sleep(5)
             # Handle the temporary unavailability, such as adding a delay and retrying later
         finally:

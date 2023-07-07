@@ -3,7 +3,10 @@
     - [x] Broker
     - Subscriber
     - [x] MongoDB
+- [ ] Cloud Docker Compose 
+
 - [ ] Add subscribers
 - [ ] Add functions to repository
     - [ ] get after id (repository)
 - [ ] Terraform
+- [x] Weather data

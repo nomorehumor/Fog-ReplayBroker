@@ -89,12 +89,12 @@ class ReplayBroker(Broker):
             self.remote_replay_socket.connect(self.remote_replay_address)
 
             # Send the replay request to the remote replay server
-            logger.info("Sending replay request", request.get("type"))
+            logging.info(f"Sending replay request {request.get('type')}")
             self.remote_replay_socket.send_json(request)
             response = self.remote_replay_socket.recv_json()
             self.handle_events(response)
         except zmq.error.Again:
-            logger.warning("Resource temporarily unavailable. Retrying in 5 sec later...")
+            logging.warning("Resource temporarily unavailable. Retrying in 5 sec later...")
             time.sleep(5)
             # Handle the temporary unavailability, such as adding a delay and retrying later
         finally:

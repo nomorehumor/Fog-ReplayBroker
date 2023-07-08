@@ -1,4 +1,6 @@
+from typing import Deque
 import uuid
+import pymongo
 from pymongo import MongoClient
 from queue import Queue
 import datetime
@@ -7,17 +9,16 @@ class Repository:
     def __init__(self, db_url: str, queue_size: int) -> None:
         self.client = MongoClient(db_url)
         self.energy_collection = self.client["sensor-data"]["energy_data"]
-        self.energy_data_cache = Queue(queue_size)
+        self.energy_data_cache = Deque(maxlen=queue_size)
 
     def insert_energy_value(self, msg):
         persist_object = {
             "arrival_time": msg["arrival_time"],
             "timestamp": msg["timestamp"],
             "_id": msg["uuid"],
+            "value": msg["value"]
         }
-        
-        persist_object["value"] = msg["value"]
-        
+                
         self.energy_collection.insert_one(persist_object)
         self.energy_data_cache.put(persist_object)
     
@@ -26,6 +27,12 @@ class Repository:
     
     def find_energy_after_arrival_time(self, timestamp: datetime.datetime):
         return list(self.energy_collection.find({"arrival_time": {"$gt": timestamp}}))
+    
+    def get_latest_energy_usage(self):
+        latest_entry = list(self.energy_collection.find().sort("arrival_time", pymongo.DESCENDING).limit(1))
+        if latest_entry == []:
+            return None
+        return latest_entry[0]
     
     def get_energy_all(self):
         return list(self.energy_collection.find())

@@ -43,7 +43,7 @@ class Broker:
             logger.info("Broker: Waiting for msg")
             message = self.edge_sub_socket.recv_json()
             self.process_msg(message)
-            logger.info("Received:", message)
+            logger.info(f"Received{message}")
     
 if __name__ == "__main__":
     with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/broker.yaml", "r") as f:

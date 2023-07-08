@@ -1,5 +1,5 @@
 pub_socket: "tcp://127.0.0.1:1234"
-sub_socket: "tcp://127.0.0.1:4341"
+sub_socket: "tcp://127.0.0.1:5560"
 replay_socket: "tcp://127.0.0.1:1441"
 remote_replay_socket: "tcp://127.0.0.1:4411"
 db_url: "mongodb://localhost:27017/"

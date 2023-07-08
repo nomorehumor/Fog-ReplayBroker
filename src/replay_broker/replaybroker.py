@@ -26,7 +26,7 @@ class ReplayBroker(Broker):
         # create local replay server
         self.local_replay_socket = self.context.socket(zmq.REP)
         self.local_replay_socket.bind(replay_socket)
-        self.last_event_date = None
+        self.last_event_date = self.repository.get_latest_energy_usage()
         # The address for the remote replay socket.
         self.remote_replay_socket = None
         self.request_in_progress = False
@@ -93,7 +93,7 @@ class ReplayBroker(Broker):
             logging.info(f"Sending replay request {request.get('type')} to {self.remote_replay_address}")
             self.remote_replay_socket.send_json(request)
             response = self.remote_replay_socket.recv_json()
-            self.handle_events(response)
+            self.handle_replay_events(response)
         except zmq.error.Again:
             logging.warning("Resource temporarily unavailable. Retrying in 5 sec later...")
             time.sleep(5)
@@ -102,10 +102,18 @@ class ReplayBroker(Broker):
             self.remote_replay_socket.close()
             self.request_in_progress = False
 
-    def handle_events(self, events):
-        logging.info(f"received events {events}")
-        # for event in events:
-            # TODO: handle event e.g. save into database
+    def process_replay_msg(self, msg):
+        if msg["name"] == "energy_usage":
+            self.repository.insert_energy_value(msg)
+        elif msg["name"] == "weather":
+            print("got weather message")
+
+
+    def handle_replay_events(self, events):
+        for event in events:
+            print(event)
+            self.process_replay_msg(event)
+            self.last_event_date = self.repository.get_latest_energy_usage()
 
 
 if __name__ == "__main__":

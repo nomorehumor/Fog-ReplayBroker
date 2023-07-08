@@ -25,7 +25,7 @@ class Broker:
         # Persistance
         self.repository = Repository(db_url, queue_size)
     
-    def process_msg(self, msg: dict):
+    def process_pub_msg(self, msg: dict):
         
         msg["arrival_time"] = datetime.datetime.now()
 
@@ -42,7 +42,7 @@ class Broker:
         while True:
             logger.info("Broker: Waiting for msg")
             message = self.edge_sub_socket.recv_json()
-            self.process_msg(message)
+            self.process_pub_msg(message)
             logger.info(f"Received{message}")
     
 if __name__ == "__main__":

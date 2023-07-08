@@ -20,7 +20,7 @@ class Repository:
         }
                 
         self.energy_collection.insert_one(persist_object)
-        self.energy_data_cache.put(persist_object)
+        self.energy_data_cache.append(persist_object)
     
     def find_energy_by_id(self, id):
         return self.energy_collection.find_one({"_id": id})

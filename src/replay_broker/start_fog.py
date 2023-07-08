@@ -7,9 +7,6 @@ if __name__ == "__main__":
     with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/fog_broker.yaml", "r") as f:
         fog_config = yaml.safe_load(f)
 
-    with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/cloud_broker.yaml", "r") as f:
-        cloud_config = yaml.safe_load(f)
-
     fogBroker = ReplayBroker(
         sub_socket=fog_config["sub_socket"],
         pub_socket=fog_config["pub_socket"],

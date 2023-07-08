@@ -40,10 +40,10 @@ class Broker:
     
     def poll(self):
         while True:
-            logger.info("Broker: Waiting for msg")
+            logging.info("Broker: Waiting for msg")
             message = self.edge_sub_socket.recv_json()
             self.process_pub_msg(message)
-            logger.info(f"Received{message}")
+            logging.info(f"Received {message}")
     
 if __name__ == "__main__":
     with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/broker.yaml", "r") as f:

@@ -27,8 +27,12 @@ class Repository:
     
     def find_energy_after_arrival_time(self, timestamp: datetime.datetime):
         return list(self.energy_collection.find({"arrival_time": {"$gt": timestamp}}))
+
+    def find_energy_after_id(self, id: str):
+        element = self.energy_collection.find_one({"_id": id})
+        return self.find_energy_after_arrival_time(element["arrival_time"])
     
-    def get_latest_energy_usage(self):
+    def find_latest_energy_usage(self):
         latest_entry = list(self.energy_collection.find().sort("arrival_time", pymongo.DESCENDING).limit(1))
         if latest_entry == []:
             return None

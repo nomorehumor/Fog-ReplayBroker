@@ -47,7 +47,7 @@ class DataProvider:
     
     def publish_data(self, json_data: dict):
         data = json.dumps(json_data, indent=4, sort_keys=True, default=str)
-        print(data)
+        # print(data)
         self.publisher.send_json(json_data) # Send message to subscribers
 
     

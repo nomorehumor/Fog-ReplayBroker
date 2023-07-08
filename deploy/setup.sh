@@ -13,3 +13,6 @@ echo \
 
 apt-get update -y
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# python installation
+apt-get install -y python3 python3-pip

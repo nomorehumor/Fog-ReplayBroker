@@ -1,22 +1,23 @@
 services:
-  sensor:
-    image: sensor
-    container_name: pub
-    build: src/sensor
-    depends_on:
-      - cloud-node
+  # sensor:
+  #   image: sensor
+  #   container_name: pub
+  #   build: src/sensor
+  #   depends_on:
+  #     - cloud-node
+  #   command: --config configs/sensor.yaml -t 
 
-  cloud-node:
-    container_name: broker
-    depends_on:
-      - mongodb
-    image: replay_broker
-    build: src/replay_broker
-    ports:
-      - 55600:55600
-      - 55590:55590
-      - 4411:4411
-    command: --config configs/cloud_broker.yaml
+  # cloud-node:
+  #   container_name: broker
+  #   depends_on:
+  #     - mongodb
+  #   image: replay_broker
+  #   build: src/replay_broker
+  #   ports:
+  #     - 55600:55600
+  #     - 55590:55590
+  #     - 4411:4411
+  #   command: --config configs/cloud_broker.yaml
 
   mongodb:
     image: mongo:latest

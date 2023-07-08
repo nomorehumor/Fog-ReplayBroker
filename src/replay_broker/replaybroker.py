@@ -1,5 +1,5 @@
 import argparse
-from broker import Broker
+from .broker import Broker
 import time
 import threading
 import zmq
@@ -46,7 +46,7 @@ class ReplayBroker(Broker):
         """
         Receives replay requests from the client and sends the requested events.
         """
-        logger.info("Starting local replay server...")
+        logging.info("Starting local replay server...")
         while True:
 
             # Receive a message from the client
@@ -91,9 +91,7 @@ class ReplayBroker(Broker):
             self.remote_replay_socket.connect(self.remote_replay_address)
 
             # Send the replay request to the remote replay server
-            logging.info(f"Sending replay request {request.get('type')}")
-            logger.info("Sending replay request", request.get("type"))
-            logger.info("to", self.remote_replay_address)
+            logging.info(f"Sending replay request {request.get('type')} to {self.remote_replay_address}")
             self.remote_replay_socket.send_json(request)
             response = self.remote_replay_socket.recv_json()
             self.handle_events(response)
@@ -106,8 +104,8 @@ class ReplayBroker(Broker):
             self.request_in_progress = False
 
     def handle_events(self, events):
-        for event in events:
-            logger.info(event)
+        logging.info(f"received events {events}")
+        # for event in events:
             # TODO: handle event e.g. save into database
 
 

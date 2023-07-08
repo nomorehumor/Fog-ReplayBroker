@@ -4,7 +4,7 @@ import yaml
 import datetime
 import logging
 
-from persistance import Repository
+from .persistance import Repository
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)

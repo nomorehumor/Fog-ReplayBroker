@@ -32,7 +32,7 @@ resource "google_compute_instance" "fog-computing" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo docker compose -f /home/ubuntu/docker-compose.yml up -d"
+      "sudo docker compose -f /home/ubuntu/docker-compose.cloud.yml up -d"
     ]
   }
 }

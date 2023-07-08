@@ -46,14 +46,14 @@ class ReplayBroker(Broker):
         """
         Receives replay requests from the client and sends the requested events.
         """
-        print("Starting local replay server...")
+        logger.info("Starting local replay server...")
         while True:
 
             # Receive a message from the client
             request = self.local_replay_socket.recv_json()
 
             if request:
-                print("Received replay request", request.get("type"))
+                logger.info("Received replay request", request.get("type"))
                 request_type = request.get("type")
 
                 if request_type == "replay_by_timestamp":
@@ -107,7 +107,7 @@ class ReplayBroker(Broker):
 
     def handle_events(self, events):
         for event in events:
-            print(event)
+            logger.info(event)
             # TODO: handle event e.g. save into database
 
 

@@ -13,7 +13,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 class ReplayBroker(Broker):
-    def __init__(self, sub_socket: str, pub_socket: str, db_url: str, queue_size: int, replay_socket) -> None:
+    def __init__(self, sub_socket: str, pub_socket: str, db_url: str, queue_size: int, replay_socket: str, remote_data_name: str) -> None:
         """
         Initializes a ReplayBroker object.
 
@@ -27,7 +27,8 @@ class ReplayBroker(Broker):
         # create local replay server
         self.local_replay_socket = self.context.socket(zmq.REP)
         self.local_replay_socket.bind(replay_socket)
-        self.last_event_date = self.repository.find_latest_energy_usage()
+        self.last_event_date = self.repository.find_latest_data(remote_data_name)
+        self.remote_data_name = remote_data_name
         # The address for the remote replay socket.
         self.remote_replay_socket = None
         self.request_in_progress = False
@@ -57,9 +58,9 @@ class ReplayBroker(Broker):
 
                 if request_type == "replay_by_timestamp":
                     last_event_date = deserialize_msg(request.get("last_event_date"))
-                    events = self.repository.find_energy_after_arrival_time(last_event_date["arrival_time"])
+                    events = self.repository.find_data_after_arrival_time(last_event_date["arrival_time"], request.get("data_name"))
                 elif request_type == "replay_all":
-                    events = self.get_all_events()
+                    events = self.repository.get_data_all(request.get("data_name"))
 
                 events_serialized = [serialize_msg(event) for event in events ]
                 self.local_replay_socket.send_json(events_serialized)
@@ -75,9 +76,13 @@ class ReplayBroker(Broker):
 
     def send_replay_request(self, timeout):
         if self.last_event_date is None:
-            request = {"type": "replay_all"}
+            request = {"type": "replay_all", "data_name": self.remote_data_name}
         else:
-            request = {"type": "replay_by_timestamp", "last_event_date": serialize_msg(self.last_event_date)}
+            request = {
+                "type": "replay_by_timestamp", 
+                "data_name": self.remote_data_name,
+                "last_event_date": serialize_msg(self.last_event_date)
+                }
 
         with self.send_replay_lock:
             self.request_in_progress = True  # Set the flag to indicate that a request is in progress
@@ -92,7 +97,7 @@ class ReplayBroker(Broker):
             self.remote_replay_socket.connect(self.remote_replay_address)
 
             # Send the replay request to the remote replay server
-            logging.info(f"Sending replay request {request.get('type')}")
+            logging.info(f"Sending replay request {request}")
             self.remote_replay_socket.send_json(request)
             response = self.remote_replay_socket.recv_json()
             self.handle_replay_events(response)
@@ -106,21 +111,17 @@ class ReplayBroker(Broker):
 
     def process_replay_msg(self, msg):
         msg_deserialized = deserialize_msg(msg)
-        if msg_deserialized["name"] == "energy_usage":
-            logger.info(f"Got energy replay: {msg_deserialized}")
-            # self.repository.insert_energy_value(msg_deserialized)
-        elif msg_deserialized["name"] == "weather":
-            print("got weather message")
-
+        logger.info(f"Got {self.remote_data_name} replay: {msg_deserialized}")
+        self.repository.insert_value(msg_deserialized, msg_deserialized["name"])
 
     def handle_replay_events(self, events):
-        # logging.info(f"Received replay events: {events}")
+        logging.info(f"Received replay events: {events}")
         if events is None:
             return
          
         for event in events:
             self.process_replay_msg(event)
-            self.last_event_date = self.repository.find_latest_energy_usage()
+            self.last_event_date = self.repository.find_latest_data(self.remote_data_name)
 
 
 if __name__ == "__main__":
@@ -137,11 +138,10 @@ if __name__ == "__main__":
         pub_socket=config["pub_socket"],
         db_url=config["db_url"],
         queue_size=config["queue_size"],
-        replay_socket=config["replay_socket"]
+        replay_socket=config["replay_socket"],
+        remote_data_name=config["remote_data_name"]
     )
-    
     if args.replay:
         broker.connect_to_remote_replay_server(config["remote_replay_socket"])
         threading.Thread(target=broker.start_replay_request_loop).start()
-    else:
-        threading.Thread(target=broker.start_local_replay_server).start()
+    threading.Thread(target=broker.start_local_replay_server).start()

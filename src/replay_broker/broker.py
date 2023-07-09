@@ -5,6 +5,7 @@ import datetime
 import logging
 
 from persistance import Repository
+from serialization import serialize_msg, deserialize_msg, deserialize_timestamp
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -26,11 +27,11 @@ class Broker:
         self.repository = Repository(db_url, queue_size)
     
     def process_pub_msg(self, msg: dict):
-        
-        msg["arrival_time"] = datetime.datetime.now()
+        msg["arrival_time"] = str(datetime.datetime.now())
+        msg_deserialized = deserialize_msg(msg)
 
-        if msg["name"] == "energy_usage":
-            self.repository.insert_energy_value(msg)
+        if msg_deserialized["name"] == "energy_usage":
+            self.repository.insert_energy_value(msg_deserialized)
 
     def get_event_by_id(self, last_event_id):
         return self.repository.find_energy_by_id(last_event_id)

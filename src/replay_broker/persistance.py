@@ -3,7 +3,8 @@ import uuid
 import pymongo
 from pymongo import MongoClient
 from queue import Queue
-import datetime
+from datetime import datetime
+
 
 class Repository:
     def __init__(self, db_url: str, queue_size: int) -> None:
@@ -12,11 +13,13 @@ class Repository:
         self.energy_data_cache = Deque(maxlen=queue_size)
 
     def insert_energy_value(self, msg):
+        
         persist_object = {
             "arrival_time": msg["arrival_time"],
             "timestamp": msg["timestamp"],
             "_id": msg["uuid"],
-            "value": msg["value"]
+            "value": msg["value"],
+            "name": msg["name"]
         }
                 
         self.energy_collection.insert_one(persist_object)
@@ -25,21 +28,31 @@ class Repository:
     def find_energy_by_id(self, id):
         return self.energy_collection.find_one({"_id": id})
     
-    def find_energy_after_arrival_time(self, timestamp: datetime.datetime):
-        return list(self.energy_collection.find({"arrival_time": {"$gt": timestamp}}))
+    def find_energy_after_arrival_time(self, arrival_time: datetime):
+        return list(map(self._create_msg_object, list(self.energy_collection.find({"arrival_time": {"$gt": arrival_time}}))))
 
     def find_energy_after_id(self, id: str):
         element = self.energy_collection.find_one({"_id": id})
-        return self.find_energy_after_arrival_time(element["arrival_time"])
+        return list(map(self._create_msg_object, self.find_energy_after_arrival_time(element["arrival_time"])))
     
     def find_latest_energy_usage(self):
         latest_entry = list(self.energy_collection.find().sort("arrival_time", pymongo.DESCENDING).limit(1))
         if latest_entry == []:
             return None
-        return latest_entry[0]
+        return self._create_msg_object(latest_entry[0])
     
     def get_energy_all(self):
-        return list(self.energy_collection.find())
+        return list(map(self._create_msg_object, list(self.energy_collection.find())))
+    
+    def _create_msg_object(self, persist_object):
+        persist_object = {
+            "arrival_time": persist_object["arrival_time"],
+            "timestamp": persist_object["timestamp"],
+            "uuid": persist_object["_id"],
+            "value": persist_object["value"],
+            "name": persist_object["name"]
+        }
+        return persist_object
             
 if __name__ == "__main__":
     repo = Repository("mongodb://localhost:27017/", 10)

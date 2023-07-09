@@ -11,12 +11,14 @@ import argparse
 DATA_ENERGY_USAGE = "energy_usage"
 DATA_WEATHER = "weather"
 
+TIME_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
+
 def generate_electricity_rows() -> dict:
     while True:
         date = datetime.now()
         ev_usage = round(random.uniform(0, random.uniform(100, 1000)), 2)
         uuid_value = uuid.uuid1()
-        yield {"timestamp": str(date), "uuid": str(uuid_value), "name": DATA_ENERGY_USAGE, "value": ev_usage}
+        yield {"timestamp": date.strftime(TIME_FORMAT), "uuid": str(uuid_value), "name": DATA_ENERGY_USAGE, "value": ev_usage}
 
 def generate_weather_rows() -> dict:
     while True:
@@ -25,7 +27,7 @@ def generate_weather_rows() -> dict:
         humidity = round(random.uniform(0, 100), 2)
         wind_speed = round(random.uniform(0, 30), 2)
         uuid_value = uuid.uuid1()
-        yield {"timestamp": str(date), "uuid": str(uuid_value), "name": DATA_WEATHER, "temperature": temperature, "humidity": humidity, "wind_speed": wind_speed}
+        yield {"timestamp": date.strftime(TIME_FORMAT), "uuid": str(uuid_value), "name": DATA_WEATHER, "temperature": temperature, "humidity": humidity, "wind_speed": wind_speed}
 
 class DataProvider:
 

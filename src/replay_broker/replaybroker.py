@@ -6,6 +6,7 @@ import zmq
 import os
 import yaml
 import logging
+from serialization import serialize_msg, deserialize_msg, deserialize_timestamp
 
 
 logger = logging.getLogger()
@@ -26,7 +27,7 @@ class ReplayBroker(Broker):
         # create local replay server
         self.local_replay_socket = self.context.socket(zmq.REP)
         self.local_replay_socket.bind(replay_socket)
-        self.last_event_date = self.repository.find_latest_energy_usage()["arrival_time"]
+        self.last_event_date = self.repository.find_latest_energy_usage()
         # The address for the remote replay socket.
         self.remote_replay_socket = None
         self.request_in_progress = False
@@ -56,11 +57,13 @@ class ReplayBroker(Broker):
                 request_type = request.get("type")
 
                 if request_type == "replay_by_timestamp":
-                    events = self.get_event_by_id(request.get("last_event_date"))
+                    last_event_date = deserialize_msg(request.get("last_event_date"))
+                    events = self.repository.find_energy_after_arrival_time(last_event_date["arrival_time"])
                 elif request_type == "replay_all":
                     events = self.get_all_events()
 
-                self.local_replay_socket.send_json(events)
+                events_serialized = [serialize_msg(event) for event in events ]
+                self.local_replay_socket.send_json(events_serialized)
 
             # Wait for a short period before checking for new messages
             time.sleep(1)
@@ -75,7 +78,7 @@ class ReplayBroker(Broker):
         if self.last_event_date is None:
             request = {"type": "replay_all"}
         else:
-            request = {"type": "replay_by_timestamp", "last_event_date": str(self.last_event_date)}
+            request = {"type": "replay_by_timestamp", "last_event_date": serialize_msg(self.last_event_date)}
 
         with self.send_replay_lock:
             self.request_in_progress = True  # Set the flag to indicate that a request is in progress
@@ -103,19 +106,20 @@ class ReplayBroker(Broker):
             self.request_in_progress = False
 
     def process_replay_msg(self, msg):
-        if msg["name"] == "energy_usage":
-            print("Got energy replay: ", msg)
-            #self.repository.insert_energy_value(msg)
-        elif msg["name"] == "weather":
+        msg_deserialized = deserialize_msg(msg)
+        if msg_deserialized["name"] == "energy_usage":
+            logger.info(f"Got energy replay: {msg_deserialized}")
+            # self.repository.insert_energy_value(msg_deserialized)
+        elif msg_deserialized["name"] == "weather":
             print("got weather message")
 
 
     def handle_replay_events(self, events):
+        # logging.info(f"Received replay events: {events}")
         if events is None:
             return
          
         for event in events:
-            print(event)
             self.process_replay_msg(event)
             self.last_event_date = self.repository.find_latest_energy_usage()
 

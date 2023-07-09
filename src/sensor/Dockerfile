@@ -14,4 +14,4 @@ RUN pip install -r requirements.txt
 COPY sensor.py ./
 COPY configs/sensor.yaml ./configs/
 
-ENTRYPOINT ["python3", "sensor.py"]
+ENTRYPOINT ["python3", "-u", "sensor.py"]

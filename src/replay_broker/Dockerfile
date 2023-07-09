@@ -16,4 +16,4 @@ COPY broker.py ./
 COPY replaybroker.py ./
 COPY configs/ ./configs/
 
-ENTRYPOINT ["python3", "replaybroker.py"]
+ENTRYPOINT ["python3", "-u", "replaybroker.py"]

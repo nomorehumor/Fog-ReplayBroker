@@ -26,7 +26,7 @@ class ReplayBroker(Broker):
         # create local replay server
         self.local_replay_socket = self.context.socket(zmq.REP)
         self.local_replay_socket.bind(replay_socket)
-        self.last_event_date = None
+        self.last_event_date = self.repository.find_latest_energy_usage()["arrival_time"]
         # The address for the remote replay socket.
         self.remote_replay_socket = None
         self.request_in_progress = False
@@ -51,7 +51,7 @@ class ReplayBroker(Broker):
 
             # Receive a message from the client
             request = self.local_replay_socket.recv_json()
-
+            logging.info(f"Got replay request {request}")
             if request:
                 logger.info("Received replay request", request.get("type"))
                 request_type = request.get("type")
@@ -76,7 +76,7 @@ class ReplayBroker(Broker):
         if self.last_event_date is None:
             request = {"type": "replay_all"}
         else:
-            request = {"type": "replay_by_timestamp", "last_event_date": self.last_event_date}
+            request = {"type": "replay_by_timestamp", "last_event_date": str(self.last_event_date)}
 
         with self.send_replay_lock:
             self.request_in_progress = True  # Set the flag to indicate that a request is in progress
@@ -94,7 +94,7 @@ class ReplayBroker(Broker):
             logging.info(f"Sending replay request {request.get('type')} to {self.remote_replay_address}")
             self.remote_replay_socket.send_json(request)
             response = self.remote_replay_socket.recv_json()
-            self.handle_events(response)
+            self.handle_replay_events(response)
         except zmq.error.Again:
             logging.warning("Resource temporarily unavailable. Retrying in 5 sec later...")
             time.sleep(5)
@@ -103,10 +103,22 @@ class ReplayBroker(Broker):
             self.remote_replay_socket.close()
             self.request_in_progress = False
 
-    def handle_events(self, events):
-        logging.info(f"received events {events}")
-        # for event in events:
-            # TODO: handle event e.g. save into database
+    def process_replay_msg(self, msg):
+        if msg["name"] == "energy_usage":
+            print("Got energy replay: ", msg)
+            #self.repository.insert_energy_value(msg)
+        elif msg["name"] == "weather":
+            print("got weather message")
+
+
+    def handle_replay_events(self, events):
+        if events is None:
+            return
+         
+        for event in events:
+            print(event)
+            self.process_replay_msg(event)
+            self.last_event_date = self.repository.find_latest_energy_usage()
 
 
 if __name__ == "__main__":

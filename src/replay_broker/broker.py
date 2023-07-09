@@ -25,7 +25,7 @@ class Broker:
         # Persistance
         self.repository = Repository(db_url, queue_size)
     
-    def process_msg(self, msg: dict):
+    def process_pub_msg(self, msg: dict):
         
         msg["arrival_time"] = datetime.datetime.now()
 
@@ -40,10 +40,10 @@ class Broker:
     
     def poll(self):
         while True:
-            logger.info("Broker: Waiting for msg")
+            logging.info("Broker: Waiting for msg")
             message = self.edge_sub_socket.recv_json()
-            self.process_msg(message)
-            logger.info("Received:", message)
+            self.process_pub_msg(message)
+            logging.info(f"Received {message}")
     
 if __name__ == "__main__":
     with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/broker.yaml", "r") as f:

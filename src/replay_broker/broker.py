@@ -30,14 +30,7 @@ class Broker:
         msg["arrival_time"] = str(datetime.datetime.now())
         msg_deserialized = deserialize_msg(msg)
 
-        if msg_deserialized["name"] == "energy_usage":
-            self.repository.insert_energy_value(msg_deserialized)
-
-    def get_event_by_id(self, last_event_id):
-        return self.repository.find_energy_by_id(last_event_id)
-
-    def get_all_events(self):
-        return self.repository.get_energy_all()
+        self.repository.insert_value(msg_deserialized, msg_deserialized["name"])
     
     def poll(self):
         while True:

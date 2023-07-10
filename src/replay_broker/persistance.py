@@ -55,6 +55,14 @@ class Repository:
                 "wind_speed": msg["wind_speed"],
                 "name": msg["name"]
             }
+        elif msg["name"]  == "energy_generation":
+            persist_object = {
+                "arrival_time": msg["arrival_time"],
+                "timestamp": msg["timestamp"],
+                "_id": msg["uuid"],
+                "value": msg["value"],
+                "name": msg["name"]
+            }
         return persist_object
 
     def _create_energy_msg_object(self, persist_object):
@@ -74,6 +82,14 @@ class Repository:
                 "temperature": persist_object["temperature"],
                 "humidity": persist_object["humidity"],
                 "wind_speed": persist_object["wind_speed"],
+                "name": persist_object["name"]
+            }
+        elif persist_object["name"]  == "energy_generation":
+            msg = {
+                "arrival_time": persist_object["arrival_time"],
+                "timestamp": persist_object["timestamp"],
+                "uuid": persist_object["_id"],
+                "value": persist_object["value"],
                 "name": persist_object["name"]
             }
         return msg

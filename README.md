@@ -1,9 +1,6 @@
----
-
 ## Deployment
 
 ### Prerequisites
-
 Before deploying the application, ensure you have the following:
 
 - [Terraform](https://www.terraform.io/downloads.html) installed on your system.
@@ -39,5 +36,3 @@ Before deploying the application, ensure you have the following:
 2. Start MongoDB with docker: `docker run --name mongodb -d -p 27017:27017 mongo:latest`
 3. Install the required Python packages: `pip install -r src/requirements.txt`.
 4. Run the Fog Node application: `python3 src/fog_components.py`.
-
----

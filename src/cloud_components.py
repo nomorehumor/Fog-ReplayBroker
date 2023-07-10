@@ -15,9 +15,15 @@ if __name__ == "__main__":
         pub_socket=cloud_config["pub_socket"],
         db_url=cloud_config["db_url"],
         queue_size=cloud_config["queue_size"],
-        replay_socket=cloud_config["replay_socket"]
+        replay_socket=cloud_config["replay_socket"],
+        remote_data_name=cloud_config["remote_data_name"]
     )
 
+    # connect to remote replay server
+    cloudBroker.connect_to_remote_replay_server(cloud_config["remote_replay_socket"])
+    threading.Thread(target=cloudBroker.start_replay_request_loop).start()
+
+    # start cloud server
     threading.Thread(target=cloudBroker.start_local_replay_server).start()
 
     ## start sensor

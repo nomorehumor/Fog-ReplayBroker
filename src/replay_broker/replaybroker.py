@@ -6,7 +6,7 @@ import zmq
 import os
 import yaml
 import logging
-from serialization import serialize_msg, deserialize_msg, deserialize_timestamp
+from .serialization import serialize_msg, deserialize_msg, deserialize_timestamp
 
 
 logger = logging.getLogger()
@@ -27,6 +27,7 @@ class ReplayBroker(Broker):
         # create local replay server
         self.local_replay_socket = self.context.socket(zmq.REP)
         self.local_replay_socket.bind(replay_socket)
+        self.local_replay_address = replay_socket
         self.last_event_date = self.repository.find_latest_data(remote_data_name)
         self.remote_data_name = remote_data_name
         # The address for the remote replay socket.
@@ -48,14 +49,14 @@ class ReplayBroker(Broker):
         """
         Receives replay requests from the client and sends the requested events.
         """
-        logging.info("Starting local replay server...")
+        logging.info(f"Starting local replay server on {self.local_replay_address}")
         while True:
 
             # Receive a message from the client
             request = self.local_replay_socket.recv_json()
-            logging.info(f"Got replay request {request}")
             if request:
                 request_type = request.get("type")
+                # logging.info(f"Got replay request {request_type}")
 
                 if request_type == "replay_by_timestamp":
                     last_event_date = deserialize_msg(request.get("last_event_date"))
@@ -98,9 +99,10 @@ class ReplayBroker(Broker):
             self.remote_replay_socket.connect(self.remote_replay_address)
 
             # Send the replay request to the remote replay server
-            logging.info(f"Sending replay request {request} to {self.remote_replay_address}")
+            logging.info(f"Sending replay request to {self.remote_replay_address}")
             self.remote_replay_socket.send_json(request)
             response = self.remote_replay_socket.recv_json()
+            print(response)
             self.handle_replay_events(response)
         except zmq.error.Again:
             logging.warning("Resource temporarily unavailable. Retrying in 5 sec later...")
@@ -116,10 +118,12 @@ class ReplayBroker(Broker):
         self.repository.insert_value(msg_deserialized, msg_deserialized["name"])
 
     def handle_replay_events(self, events):
-        logging.info(f"Received replay events: {events}")
+        print(events)
         if events is None:
             return
-         
+
+        logging.info(f"Received {len(events)} replay events")
+
         for event in events:
             self.process_replay_msg(event)
             self.last_event_date = self.repository.find_latest_data(self.remote_data_name)

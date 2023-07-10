@@ -5,6 +5,7 @@ import datetime
 import logging
 
 from .persistance import Repository
+from serialization import serialize_msg, deserialize_msg, deserialize_timestamp
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -25,25 +26,18 @@ class Broker:
         # Persistance
         self.repository = Repository(db_url, queue_size)
     
-    def process_msg(self, msg: dict):
-        
-        msg["arrival_time"] = datetime.datetime.now()
+    def process_pub_msg(self, msg: dict):
+        msg["arrival_time"] = str(datetime.datetime.now())
+        msg_deserialized = deserialize_msg(msg)
 
-        if msg["name"] == "energy_usage":
-            self.repository.insert_energy_value(msg)
-
-    def get_event_by_id(self, last_event_id):
-        return self.repository.find_energy_by_id(last_event_id)
-
-    def get_all_events(self):
-        return self.repository.get_energy_all()
+        self.repository.insert_value(msg_deserialized, msg_deserialized["name"])
     
     def poll(self):
         while True:
-            logger.info("Broker: Waiting for msg")
+            logging.info("Broker: Waiting for msg")
             message = self.edge_sub_socket.recv_json()
-            self.process_msg(message)
-            logger.info("Received:", message)
+            self.process_pub_msg(message)
+            logging.info(f"Received {message}")
     
 if __name__ == "__main__":
     with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/broker.yaml", "r") as f:

@@ -11,9 +11,7 @@ COPY requirements.txt ./
 
 RUN pip install -r requirements.txt
 
-COPY persistance.py ./
-COPY broker.py ./
-COPY replaybroker.py ./
+COPY ./* ./
 COPY configs/ ./configs/
 
-ENTRYPOINT ["python3", "replaybroker.py"]
+ENTRYPOINT ["python3", "-u", "replaybroker.py"]

@@ -10,13 +10,16 @@ import argparse
 
 DATA_ENERGY_USAGE = "energy_usage"
 DATA_WEATHER = "weather"
+DATA_ENERGY_GENERATION = "energy_generation"
+
+TIME_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
 def generate_electricity_rows() -> dict:
     while True:
         date = datetime.now()
         ev_usage = round(random.uniform(0, random.uniform(100, 1000)), 2)
         uuid_value = uuid.uuid1()
-        yield {"timestamp": str(date), "uuid": str(uuid_value), "name": DATA_ENERGY_USAGE, "value": ev_usage}
+        yield {"timestamp": date.strftime(TIME_FORMAT), "uuid": str(uuid_value), "name": DATA_ENERGY_USAGE, "value": ev_usage}
 
 def generate_weather_rows() -> dict:
     while True:
@@ -25,8 +28,14 @@ def generate_weather_rows() -> dict:
         humidity = round(random.uniform(0, 100), 2)
         wind_speed = round(random.uniform(0, 30), 2)
         uuid_value = uuid.uuid1()
-        yield {"timestamp": str(date), "uuid": str(uuid_value), "name": DATA_WEATHER, "temperature": temperature, "humidity": humidity, "wind_speed": wind_speed}
+        yield {"timestamp": date.strftime(TIME_FORMAT), "uuid": str(uuid_value), "name": DATA_WEATHER, "temperature": temperature, "humidity": humidity, "wind_speed": wind_speed}
 
+def generate_energy_generation_rows() -> dict:
+    while True:
+        date = datetime.now()
+        energy_generation = round(random.uniform(0, random.uniform(1, 5)), 4)
+        uuid_value = uuid.uuid1()
+        yield {"timestamp": date.strftime(TIME_FORMAT), "uuid": str(uuid_value), "name": DATA_ENERGY_GENERATION, "value": energy_generation}
 class DataProvider:
 
     def __init__(self, socket_address, delay=0.3) -> None:
@@ -40,6 +49,8 @@ class DataProvider:
             data_generator = generate_electricity_rows()
         elif data_type == DATA_WEATHER:
             data_generator = generate_weather_rows()
+        elif data_type == DATA_ENERGY_GENERATION:
+            data_generator = generate_energy_generation_rows()
             
         for data in data_generator:
             self.publish_data(data)
@@ -54,7 +65,7 @@ class DataProvider:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", default=os.path.dirname(os.path.realpath(__file__)) + "/configs/sensor.yaml")
-    parser.add_argument("-t", "--type", type=str, required=True, help=f"Options: {DATA_ENERGY_USAGE}, {DATA_WEATHER}")
+    parser.add_argument("-t", "--type", type=str, required=True, help=f"Options: {DATA_ENERGY_USAGE}, {DATA_WEATHER}, {DATA_ENERGY_GENERATION}")
     args = parser.parse_args()
     
     with open(args.config, "r") as f:

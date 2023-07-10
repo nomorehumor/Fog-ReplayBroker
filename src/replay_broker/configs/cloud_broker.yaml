@@ -1,6 +1,7 @@
 pub_socket: "tcp://127.0.0.1:55590"
 sub_socket: "tcp://127.0.0.1:55600"
-remote_replay_socket: "tcp://127.0.0.1:1441"
+replay_socket: "tcp://*:4411"
+remote_replay_socket: "tcp://100.85.76.17:60001"
 db_url: "mongodb://localhost:27017/"
 queue_size: 500
 remote_data_name: 'energy_usage'

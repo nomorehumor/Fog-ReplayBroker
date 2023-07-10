@@ -4,7 +4,7 @@
 Before deploying the application, ensure you have the following:
 
 - [Terraform](https://www.terraform.io/downloads.html) installed on your system.
-- A Tailscale account created and Tailscale installed on your local machine.
+- A Tailscale account created and Tailscale [installed](https://tailscale.com/download) on your local machine.
 - The Google Cloud Platform (GCP) service account key downloaded from [GCP](https://console.cloud.google.com/iam-admin/serviceaccounts/details/117466062831806713474/keys?project=fog-computing-391310). Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the path of the downloaded key, for example: `export GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/key.json`.
 
 ### Deploying on GCP

@@ -51,9 +51,8 @@ class ReplayBroker(Broker):
 
             # Receive a message from the client
             request = self.local_replay_socket.recv_json()
-
+            logging.info(f"Got replay request {request}")
             if request:
-                logger.info("Received replay request", request.get("type"))
                 request_type = request.get("type")
 
                 if request_type == "replay_by_timestamp":

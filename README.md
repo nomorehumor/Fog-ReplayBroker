@@ -27,7 +27,7 @@ Before deploying the application, ensure you have the following:
 
 #### Running the Cloud Node
 
-7. Install the required Python packages: `pip install -r src/requirements.txt`.
+7. Install the required Python packages: `pip install -r requirements.txt`.
 8. Change the remote server address in the `src/replay_broker/cloud_config.yml` file to the Tailscale IP address of your fog node.
 9. Run the Cloud Node application: `python3 src/cloud_components.py`.
 
@@ -40,5 +40,5 @@ Before deploying the application, ensure you have the following:
 
 1. Update the remote server address in the `src/replay_broker/fog_config.yml` file to the Tailscale IP address of your cloud node. For example, change `remote_replay_socket: "tcp://127.0.0.1:4411"` to `remote_replay_socket: "tcp://35.246.212.91:4411"`.
 2. Start MongoDB with docker: `docker run --name mongodb -d -p 27017:27017 mongo:latest`
-3. Install the required Python packages: `pip install -r src/requirements.txt`.
+3. Install the required Python packages: `pip install -r requirements.txt`.
 4. Run the Fog Node application: `python3 src/fog_components.py`.

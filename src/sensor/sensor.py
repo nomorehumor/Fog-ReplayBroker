@@ -36,7 +36,8 @@ def generate_energy_generation_rows() -> dict:
         energy_generation = round(random.uniform(0, random.uniform(1, 5)), 4)
         uuid_value = uuid.uuid1()
         yield {"timestamp": date.strftime(TIME_FORMAT), "uuid": str(uuid_value), "name": DATA_ENERGY_GENERATION, "value": energy_generation}
-class DataProvider:
+
+class Sensor:
 
     def __init__(self, socket_address, delay=0.3) -> None:
         self.context = zmq.Context()
@@ -71,5 +72,5 @@ if __name__ == "__main__":
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
         
-    sensor = DataProvider(socket_address=config["socket"], delay=config["delay"])
+    sensor = Sensor(socket_address=config["socket"], delay=config["delay"])
     sensor.start(args.type)

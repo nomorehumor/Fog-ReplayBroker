@@ -12,7 +12,7 @@ if __name__ == "__main__":
         pub_socket=fog_config["pub_socket"],
         db_url=fog_config["db_url"],
         queue_size=fog_config["queue_size"],
-        replay_socket=fog_config["replay_socket"]
+        replay_socket=fog_config["replay_socket"],
         remote_data_name=fog_config["remote_data_name"]
     )
 

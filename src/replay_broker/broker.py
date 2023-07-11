@@ -4,8 +4,8 @@ import yaml
 import datetime
 import logging
 
-from persistance import Repository
-from serialization import serialize_msg, deserialize_msg, deserialize_timestamp
+from replay_broker.persistance import Repository
+from replay_broker.serialization import serialize_msg, deserialize_msg, deserialize_timestamp
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)

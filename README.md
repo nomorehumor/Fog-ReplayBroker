@@ -1,4 +1,10 @@
-## Deployment
+## Executing nodes
+To execute the test scenario you should follow these steps:
+1. Install requirements: `pip install -r requirements.txt`
+2. Install and run MongoDB
+3. Run fog components by executing: `python3 src/fog_components.py`
+4. On a cloud node run cloud components: `python3 src/cloud_components.py`
+## Deployment Cloud node on GCP
 
 ### Prerequisites
 Before deploying the application, ensure you have the following:

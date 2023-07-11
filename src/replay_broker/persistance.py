@@ -10,8 +10,6 @@ class Repository:
     def __init__(self, db_url: str, queue_size: int) -> None:
         self.client = MongoClient(db_url)
         self.db = self.client["sensor-data"]
-        # self.energy_collection = self.client["sensor-data"]["energy_data"]
-        # self.weather_collection = self.client["sensor-data"]["weather"]
 
     def insert_value(self, msg, collection: str):
         persist_object = self._create_persist_object(msg)      

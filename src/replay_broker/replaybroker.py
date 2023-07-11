@@ -33,13 +33,12 @@ class ReplayBroker(Broker):
         # create local replay server
         self.local_replay_socket = self.context.socket(zmq.REP)
         self.local_replay_socket.bind(replay_socket)
-        self.last_event_date = self.repository.find_latest_data(remote_data_name)
-        self.remote_data_name = remote_data_name
         # The address for the remote replay socket.
         self.remote_replay_server_socket = None
         self.request_in_progress = False
         self.send_replay_lock = threading.Lock()
-        self.first_event_date = None
+        self.last_event_date = self.repository.find_latest_data(remote_data_name)
+        self.remote_data_name = remote_data_name
         
         self.data_poll_thread = threading.Thread(target=self.poll)
         self.data_poll_thread.start()

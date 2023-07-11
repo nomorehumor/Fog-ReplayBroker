@@ -69,7 +69,7 @@ To execute the test scenario you should follow these steps:
 3. Run fog components by executing: `python3 src/fog_components.py`
 4. On a cloud node run cloud components: `python3 src/cloud_components.py`
 
-## Deployment Cloud node on GCP
+## Deployment
 
 ### Prerequisites
 Before deploying the application, ensure you have the following:

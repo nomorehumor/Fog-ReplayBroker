@@ -4,7 +4,7 @@ import yaml
 import datetime
 import logging
 
-from .persistance import Repository
+from persistance import Repository
 from serialization import serialize_msg, deserialize_msg, deserialize_timestamp
 
 logger = logging.getLogger()
@@ -16,7 +16,7 @@ class Broker:
         
         # Edge socket for incoming sensor messages
         self.edge_sub_socket = self.context.socket(zmq.SUB)  # XSUB socket for receiving messages from multiple publishers
-        self.edge_sub_socket.connect(sub_socket)  # Bind frontend socket to port 5559
+        self.edge_sub_socket.bind(sub_socket)  # Bind frontend socket to port 5559
         self.edge_sub_socket.setsockopt(zmq.SUBSCRIBE, b"")
         
         # Server socket for outgoing messages to cloud
@@ -34,10 +34,9 @@ class Broker:
     
     def poll(self):
         while True:
-            logging.info("Broker: Waiting for msg")
             message = self.edge_sub_socket.recv_json()
             self.process_pub_msg(message)
-            logging.info(f"Received {message}")
+            logging.info(f"Received Sensor Data: {message}")
     
 if __name__ == "__main__":
     with open(os.path.dirname(os.path.realpath(__file__)) + "/configs/broker.yaml", "r") as f:

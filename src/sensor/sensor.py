@@ -41,7 +41,7 @@ class DataProvider:
     def __init__(self, socket_address, delay=0.3) -> None:
         self.context = zmq.Context()
         self.publisher = self.context.socket(zmq.PUB) 
-        self.publisher.bind(socket_address)  # Connect socket to backend of the broker
+        self.publisher.connect(socket_address)  # Connect socket to backend of the broker
         self.delay = delay
 
     def start(self, data_type):
@@ -58,13 +58,13 @@ class DataProvider:
     
     def publish_data(self, json_data: dict):
         data = json.dumps(json_data, indent=4, sort_keys=True, default=str)
-        # print(data)
+        print(data)
         self.publisher.send_json(json_data) # Send message to subscribers
 
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config", default=os.path.dirname(os.path.realpath(__file__)) + "/configs/sensor.yaml")
+    parser.add_argument("-c", "--config", default=os.path.dirname(os.path.realpath(__file__)) + "/configs/sensor_fog.yaml")
     parser.add_argument("-t", "--type", type=str, required=True, help=f"Options: {DATA_ENERGY_USAGE}, {DATA_WEATHER}, {DATA_ENERGY_GENERATION}")
     args = parser.parse_args()
     

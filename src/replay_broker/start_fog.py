@@ -13,6 +13,7 @@ if __name__ == "__main__":
         db_url=fog_config["db_url"],
         queue_size=fog_config["queue_size"],
         replay_socket=fog_config["replay_socket"]
+        remote_data_name=fog_config["remote_data_name"]
     )
 
     fogBroker.connect_to_remote_replay_server(fog_config["remote_replay_socket"])

@@ -1,9 +1,74 @@
-## Executing nodes
+# Reliable Message Delivery Prototype
+
+The assignment repository for the "Fog Computing course (SS2023)" course at TU Berlin.
+
+Authors:
+- Alexander Guttenberger
+- Maxim Popov
+
+## Assignment Deliveries
+The assignment deliveries can be found at root of the repository.
+- Demo Video -> demo_presentation_video.mp4
+- Documentation -> documentation.pdf
+
+## Project Structure
+The repository is organized as follows:
+```
+├── README.md                      # Documentation file for the repository
+├── LICENSE                        # License file
+├── demo_presentation_video.mp4    # Demo video of the working solution
+├── documentation.pdf              # Documentation of the solution
+├── deploy                         # Folder containing deployment files
+│   ├── firewall.tf                # Terraform configuration for the firewall
+│   ├── output.tf                  # Terraform configuration for output variables
+│   ├── provider.tf                # Terraform configuration for the provider
+│   ├── setup.sh                   # Shell script for setup
+│   ├── ssh_into_vm.sh             # Shell script for SSH into VM
+│   ├── ssh_key.tf                 # Terraform configuration for SSH key
+│   └── vm.tf                      # Terraform configuration for virtual machine
+├── docker-compose.cloud.yml       # Docker Compose configuration for cloud environment
+├── prototyping_assignment.pdf     # PDF file for prototyping assignment
+├── requirements.txt               # File listing the required Python packages
+└── src                            # Source code folder
+    ├── cloud_components.py        # Python file for cloud components
+    ├── fog_components.py          # Python file for fog components
+    ├── replay_broker              # Folder for replay broker
+    │   ├── Dockerfile             # Dockerfile for replay broker
+    │   ├── __init__.py            # Initialization file for replay broker
+    │   ├── broker.py              # Python file for broker
+    │   ├── configs                # Folder containing configuration files
+    │   │   ├── broker.yaml        # YAML configuration file for broker
+    │   │   ├── cloud_broker.yaml  # YAML configuration file for cloud broker
+    │   │   └── fog_broker.yaml    # YAML configuration file for fog broker
+    │   ├── logging_formatter.py   # Python file for logging formatter
+    │   ├── persistance.py         # Python file for persistence
+    │   ├── replaybroker.py        # Python file for replay broker
+    │   ├── requirements.txt       # File listing the required Python packages for replay broker
+    │   ├── serialization.py       # Python file for serialization
+    │   ├── start_brokers.py       # Python file for starting brokers
+    │   ├── start_cloud.py         # Python file for starting cloud
+    │   └── start_fog.py           # Python file for starting fog
+    ├── sensor                     # Folder for sensor
+    │   ├── Dockerfile             # Dockerfile for sensor
+    │   ├── configs                # Folder containing configuration files
+    │   │   ├── sensor_cloud.yaml  # YAML configuration file for sensor in cloud
+    │   │   └── sensor_fog.yaml    # YAML configuration file for sensor in fog
+    │   ├── requirements.txt       # File listing the required Python packages for sensor
+    │   └── sensor.py              # Python file for sensor
+    └── subscriber                 # Folder for subscriber
+        ├── configs                # Folder containing configuration files
+        │   └── subscriber.yaml    # YAML configuration file for subscriber
+        ├── requirements.txt       # File listing the required Python packages for subscriber
+        └── subscriber.py          # Python file for subscriber
+```
+
+## Testing nodes locally only
 To execute the test scenario you should follow these steps:
 1. Install requirements: `pip install -r requirements.txt`
 2. Install and run MongoDB
 3. Run fog components by executing: `python3 src/fog_components.py`
 4. On a cloud node run cloud components: `python3 src/cloud_components.py`
+
 ## Deployment Cloud node on GCP
 
 ### Prerequisites

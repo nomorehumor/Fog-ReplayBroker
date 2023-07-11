@@ -20,8 +20,8 @@ class Broker:
         self.edge_sub_socket.setsockopt(zmq.SUBSCRIBE, b"")
         
         # Server socket for outgoing messages to cloud
-        self.server_pub_socket = self.context.socket(zmq.XPUB)
-        self.server_pub_socket.bind(pub_socket)  # Bind backend socket to port 5560
+        self.edge_pub_socket = self.context.socket(zmq.XPUB)
+        self.edge_pub_socket.bind(pub_socket)  # Bind backend socket to port 5560
         
         # Persistance
         self.repository = Repository(db_url, queue_size)
@@ -31,6 +31,8 @@ class Broker:
         msg_deserialized = deserialize_msg(msg)
 
         self.repository.insert_value(msg_deserialized, msg_deserialized["name"])
+        
+        self.edge_pub_socket.send_json(msg)
     
     def poll(self):
         while True:

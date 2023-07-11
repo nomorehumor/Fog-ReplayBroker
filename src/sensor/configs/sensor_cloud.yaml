@@ -1,2 +1,2 @@
-socket: "tcp://*:5561"
+socket: "tcp://localhost:5561"
 delay: 1

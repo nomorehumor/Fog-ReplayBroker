@@ -36,7 +36,7 @@ class ReplayBroker(Broker):
         self.last_event_date = self.repository.find_latest_data(remote_data_name)
         self.remote_data_name = remote_data_name
         # The address for the remote replay socket.
-        self.remote_replay_socket = None
+        self.remote_replay_server_socket = None
         self.request_in_progress = False
         self.send_replay_lock = threading.Lock()
         self.first_event_date = None
@@ -98,27 +98,26 @@ class ReplayBroker(Broker):
     def _send_replay_request(self, request, timeout):
         try:
             # Create connection to remote replay server
-            self.remote_replay_socket = self.context.socket(zmq.REQ)
-            self.remote_replay_socket.setsockopt(zmq.CONNECT_TIMEOUT, timeout * 1000)
-            self.remote_replay_socket.setsockopt(zmq.RCVTIMEO, timeout * 1000)
-            self.remote_replay_socket.connect(self.remote_replay_address)
+            self.remote_replay_server_socket = self.context.socket(zmq.REQ)
+            self.remote_replay_server_socket.setsockopt(zmq.CONNECT_TIMEOUT, timeout * 1000)
+            self.remote_replay_server_socket.setsockopt(zmq.RCVTIMEO, timeout * 1000)
+            self.remote_replay_server_socket.connect(self.remote_replay_address)
 
             # Send the replay request to the remote replay server
             logging.info(f"CLIENT: Sending replay request '{request.get('type')}' to {self.remote_replay_address}")
-            self.remote_replay_socket.send_json(request)
-            response = self.remote_replay_socket.recv_json()
+            self.remote_replay_server_socket.send_json(request)
+            response = self.remote_replay_server_socket.recv_json()
             self.handle_replay_events(response)
         except zmq.error.Again:
             logging.warning(f"CLIENT: Resource temporarily unavailable. Retrying in {REQUEST_INTERVAL} sec...")
             time.sleep(REQUEST_INTERVAL)
             # Handle the temporary unavailability, such as adding a delay and retrying later
         finally:
-            self.remote_replay_socket.close()
+            self.remote_replay_server_socket.close()
             self.request_in_progress = False
 
     def process_replay_msg(self, msg):
         msg_deserialized = deserialize_msg(msg)
-        # logger.info(f"Got {self.remote_data_name} replay: {msg_deserialized}")
         self.repository.insert_value(msg_deserialized, msg_deserialized["name"])
 
     def handle_replay_events(self, events):

@@ -2,6 +2,12 @@
 
 The assignment repository for the "Fog Computing course (SS2023)" course at TU Berlin.
 
+The code includes a sensor simulation, a `Broker` that can receive messages from sensors and a `ReplayBroker` that can synchronize with another broker through periodical replay requests. 
+
+A replay request is either a "replay all" request or a "replay_by_timestamp" request that contains timestamp of the last received message. If a broker receives a replay request, it responds with messages of the requested type. It sends all messages of given type if received "replay all" and in case of "replay_by_timestamp", it sends all messages that have timestamp > timestamp in request.
+
+This way we ensure reliable message delivery and asynchronous data synchronization even if one of brokers goes offline.
+
 Authors:
 - Alexander Guttenberger
 - Maxim Popov
